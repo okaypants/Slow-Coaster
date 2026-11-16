@@ -1,6 +1,6 @@
 # Slow Coaster
 
-A slow, chunky-pixel drifting game for phones. Drag anywhere to steer the little white dot, collect the ringed pips, and keep clear of the shapes. Everything you do adds notes to a tune the game writes as you go, and it keeps the tune, your best score and your current run between visits.
+A slow, chunky-pixel drifting game for phones. Drag anywhere to steer the little white dot, collect the ringed pips, and mind what drifts through: some things are solid and can be shoved aside, others give you a bump. Everything you do adds notes to a tune the game writes as you go, and it keeps the tune, your best score and your current run between visits.
 
 The whole game is one file, `index.html`: no build step and no dependencies. Sound is synthesised in the browser. The only thing loaded from outside is the Fredoka font from Google Fonts.
 

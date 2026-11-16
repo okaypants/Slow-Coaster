@@ -704,6 +704,46 @@ function segDist(px_, py_, a, b) {
   u = Math.max(0, Math.min(1, u));
   return Math.hypot(px_ - (a.x + dx * u), py_ - (a.y + dy * u));
 }
+// ---------- solid things ----------
+// Free-drifting bodies (the shapes, bouncers, the flock, breathers, followers and shy ones) are solid:
+// they knock into each other, and your light shoves them aside instead of taking a bump.
+const SOLID = new Set([9, 12, 13, 16, 17]);
+function solidPass(dt, on) {
+  const B = [];
+  for (const s of shapes) if (!s.leaving && !s.entering && s.born <= 0) B.push(s);
+  for (const e of ents) if (SOLID.has(e.k) && !e.leaving && (e.inb || e.k === 9)) B.push(e);
+  for (let i = 0; i < B.length; i++) for (let j = i + 1; j < B.length; j++) {
+    const a = B[i], b = B[j], dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 0.01, o = a.r + b.r - d;
+    if (o <= 0) continue;
+    const nx = dx / d, ny = dy / d;
+    a.x -= nx * o / 2; a.y -= ny * o / 2; b.x += nx * o / 2; b.y += ny * o / 2;
+    const u = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+    if (u < 0) {   // closing: swap the speed along the line between them
+      a.vx += u * nx; a.vy += u * ny; b.vx -= u * nx; b.vy -= u * ny;
+      if (a.k === undefined) a.ci++; if (b.k === undefined) b.ci++;
+    }
+  }
+  for (const a of B) {
+    if (a.v0 === undefined) a.v0 = Math.hypot(a.vx, a.vy);
+    if (a.kn > 0) a.kn -= dt;
+    if (on) {
+      const dx = a.x - player.x, dy = a.y - player.y, d = Math.hypot(dx, dy) || 0.01, o = a.r + 2 - d;
+      if (o > 0) {
+        const nx = dx / d, ny = dy / d;
+        a.x += nx * o; a.y += ny * o;
+        const u = (a.vx - velX) * nx + (a.vy - velY) * ny;
+        if (u < 0) { a.vx -= 2 * u * nx; a.vy -= 2 * u * ny; }
+        if (!(a.kn > 0)) { a.kn = 0.3; burst(player.x + nx * 2, player.y + ny * 2, WHITE, 3, 25); }
+      }
+    }
+    const v = Math.hypot(a.vx, a.vy);
+    if (v > 70) { a.vx *= 70 / v; a.vy *= 70 / v; }
+    else if (v > 0.01 && a.v0 > 0 && (a.k === undefined || a.k === 13)) {   // a shoved thing settles back to its own pace
+      const f = v > a.v0 ? Math.max(a.v0 / v, 1 - 1.2 * dt) : Math.min(a.v0 / v, 1 + 1.2 * dt);
+      a.vx *= f; a.vy *= f;
+    }
+  }
+}
 function update(dt) {
   t += dt;
   const sp = (state === 'title' || state === 'listen') ? 1 : speed();
@@ -778,7 +818,6 @@ function update(dt) {
     }
     if (hot && s.born <= 0) {
       const d = Math.hypot(s.x - hx, s.y - hy);
-      if (d < s.r * 0.85 + 1) die();
       if (d < s.r + 6 && s.gz <= 0) { s.gz = 0.6; graze(hx, hy, BRIGHT[s.ci % 6]); }
     }
   }
@@ -835,7 +874,7 @@ function update(dt) {
     e.P = def.parts ? def.parts(e) : [[e.x, e.y, e.r, e.sh]];
     if (hot) for (const q of e.P) {
       const d = Math.hypot(q[0] - hx, q[1] - hy) - q[2];
-      if (d < 1.2) die();
+      if (d < 1.2 && !SOLID.has(e.k)) die();
       if (d < 6 && e.gz <= 0) { e.gz = 0.7; graze(hx, hy, BRIGHT[e.ci]); }
     }
   }
@@ -861,6 +900,7 @@ function update(dt) {
     }
   }
   if (orbits.some(q => q.gone)) orbits = orbits.filter(q => !q.gone);
+  solidPass(dt, live && !resting);
 
   // tide: slow bars that come down from the top, each with a gap to pass through (or rest and let it wash over you)
   if (has(5) && !menu()) {
@@ -1346,7 +1386,7 @@ try {   // pick up where you left off
 requestAnimationFrame(frame);
 
 // tiny hook for testing
-window.__sc = { startLevel: n => startLevel(n), get state() { return state; }, get score() { return score; }, player, get pip() { return pip; }, get tune() { return tune; }, get ch() { return ch; }, get era() { return era; }, get level() { return level; }, get kind() { return kind; }, get kind2() { return kind2; }, get weave() { return weave; }, get ents() { return ents.length; }, get resting() { return resting; }, setEra, lockEra: v => { eraLock = v; }, get audio() { return ac && ac.state; } };
+window.__sc = { startLevel: n => startLevel(n), get shapes() { return shapes; }, get mult() { return mult; }, get state() { return state; }, get score() { return score; }, player, get pip() { return pip; }, get tune() { return tune; }, get ch() { return ch; }, get era() { return era; }, get level() { return level; }, get kind() { return kind; }, get kind2() { return kind2; }, get weave() { return weave; }, get ents() { return ents.length; }, get resting() { return resting; }, setEra, lockEra: v => { eraLock = v; }, get audio() { return ac && ac.state; } };
 })();
 </script>
 <script>

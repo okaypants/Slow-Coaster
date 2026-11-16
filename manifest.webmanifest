@@ -1,0 +1,16 @@
+{
+  "name": "Slow Coaster",
+  "short_name": "Slow Coaster",
+  "description": "A slow, chunky-pixel drifting game that writes its own tune as you play.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#c9f2e3",
+  "theme_color": "#c9f2e3",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

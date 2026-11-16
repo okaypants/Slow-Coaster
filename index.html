@@ -550,7 +550,7 @@ const K = {
     make: () => { const L = rnd(10, 16), s = side(L + 4); return { x: s.x, y: rnd(L + 6, H - L - 6), vx: s.d * rnd(7, 10), vy: rnd(-6, 6), L, a: rnd(0, 6), w: rnd(0.3, 0.5), r: 3, sh: 1 }; },
     step(e, dt) { e.x += e.vx * dt; e.y += e.vy * dt; e.a += e.w * dt; walls(e, e.L + 3); },
     parts(e) { const h = e.L * (1 + 0.4 * Math.sin(e.t * 1.7)) / 2, c = Math.cos(e.a) * h, q = Math.sin(e.a) * h; return [[e.x + c, e.y + q, 3, 1], [e.x - c, e.y - q, 3, 1]]; },
-    lines(e) { const p = e.P; return p ? [[p[0][0], p[0][1], p[1][0], p[1][1]]] : []; } },
+    lines(e) { const p = e.P; return p && p.length > 1 ? [[p[0][0], p[0][1], p[1][0], p[1][1]]] : []; } },
   19: { every: 9,     // curtain: a rippling column of beads that sweeps across; slip between them
     make: () => { const s = side(18); return { x: s.x, d: s.d, y: 0, ph: rnd(0, 6), r: 2, sh: 1 }; },
     step(e, dt) { e.x += e.d * 10 * dt; if (e.x < -40 || e.x > W + 40) e.gone = true; },
